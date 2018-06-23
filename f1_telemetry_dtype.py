@@ -5,6 +5,8 @@
 
 import numpy as np
 
+F1_2017_UdpPacketSize = 1289
+
 F1_2017_CarUDPData = np.dtype([
     ('m_worldPosition'           , np.float32, ( 3, )),
     ('m_lastLapTime'             , np.float32        ),

@@ -3,28 +3,50 @@
 import socket
 import time
 import numpy as np
-import matplotlib.pyplot as plt
+import struct
 
-from f1_telemetry_dtype import F1_2017_UDPPacket
+from f1_telemetry_dtype import F1_2017_UdpPacketSize
 
-filename = "spa_franchorchamps_race_telemetry.dat"
+def broadcast_file_packets(filename, port):
 
-with open(filename, "rb") as fi:
-    data = fi.read()
+    sock = socket.socket(family = socket.AF_INET, type = socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-data = np.frombuffer(data, dtype = F1_2017_UDPPacket)
+    address = ('<broadcast>', port)
+    sock.connect(address)
 
-plt.plot(data['m_x'], -data['m_z'])
-#plt.plot(data['m_time'], data['m_totalDistance'])
-#plt.plot(data['m_time'], data['m_track_size'])
-#print(data['m_track_size'].min(), data['m_track_size'].max())
+    with open(filename, "rb") as fi:
 
-#ax1 = plt.subplot(211)
-#for i in range(20):
-#    ax1.plot(data['m_time'], data['m_car_data'][:,i]['m_carPosition'])
+        t0_udp = None
+        t0_wallclock = None
+        packet_index = 0
+        realtime_factor = 1.0
+        while True:
+            packet = fi.read(F1_2017_UdpPacketSize)
+            if len(packet) != F1_2017_UdpPacketSize:
+                break
+            t_udp = struct.unpack('<f', packet[0:4])[0]
+            t_wallclock = time.time()
+            if t0_udp is None:
+                # First packet!
+                t0_udp = t_udp
+                t0_wallclock = t_wallclock
+            t_emit = t0_wallclock + (t_udp - t0_udp) / realtime_factor
+            t_sleep = t_emit - t_wallclock
+            if t_sleep >= 0:
+                time.sleep(t_sleep)
+            sock.send(packet)
 
-#ax2 = plt.subplot(212, sharex = ax1)
-#for i in [17]:
-#    ax2.plot(data['m_time'], data['m_car_data'][:,i]['m_lapDistance'])
+            print("\r{:12.3f}".format(t_udp), end = '')
 
-plt.show()
+    print()
+
+def main():
+
+    filename = "spa_franchorchamps_race_telemetry.dat"
+    port = 20777
+    broadcast_file_packets(filename, port)
+
+if __name__ == "__main__":
+    main()
+
