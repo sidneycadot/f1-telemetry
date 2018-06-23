@@ -5,7 +5,53 @@
 
 import numpy as np
 
+F1_2017_Teams = {
+    4 : 'Mercedes',
+    0 : 'Redbull',
+    1 : 'Ferrari',
+    6 : 'Force India',
+    7 : 'Williams',
+    2 : 'McLaren',
+    8 : 'Toro Rosso',
+   11 : 'Haas',
+    3 : 'Renault',
+    5 : 'Sauber'
+}
+
+F1_2017_Drivers = {
+     9 : "Lewis Hamilton",
+    15 : "Valtteri Bottas",
+    16 : "Daniel Ricciardo",
+    22 : "Max Verstappen",
+     0 : "Sebastian Vettel",
+     6 : "Kimi Räikkönen",
+     5 : "Sergio Perez",
+    33 : "Esteban Ocon",
+     3 : "Felipe Massa",
+    35 : "Lance Stroll",
+     2 : "Fernando Alonso",
+    34 : "Stoffel Vandoorne",
+    23 : "Carlos Sainz Jr.",
+     1 : "Daniil Kvyat",
+     7 : "Romain Grosjean",
+    14 : "Kevin Magnussen",
+    10 : "Nico Hulkenberg",
+    20 : "Jolyon Palmer",
+    18 : "Marcus Ericsson",
+    31 : "Pascal Wehrlein"
+}
+
 F1_2017_UdpPacketSize = 1289
+
+F1_2017_TyreCompounds = {
+    0 : "US",
+    1 : "SS",
+    2 : "S",
+    3 : "M",
+    4 : "H",
+    5 : "I",
+    6 : "W"
+}
 
 F1_2017_CarUDPData = np.dtype([
     ('m_worldPosition'           , np.float32, ( 3, )),
@@ -31,7 +77,6 @@ F1_2017_UDPPacket = np.dtype([
     ('m_lapTime'                 , np.float32        ),
     ('m_lapDistance'             , np.float32        ),
     ('m_totalDistance'           , np.float32        ),
-
     ('m_x'                       , np.float32        ),
     ('m_y'                       , np.float32        ),
     ('m_z'                       , np.float32        ),
@@ -45,11 +90,9 @@ F1_2017_UDPPacket = np.dtype([
     ('m_xd'                      , np.float32        ),
     ('m_yd'                      , np.float32        ),
     ('m_zd'                      , np.float32        ),
-
     ('m_susp_pos'                , np.float32, ( 4, )),
     ('m_susp_vel'                , np.float32, ( 4, )),
     ('m_wheel_speed'             , np.float32, ( 4, )),
-
     ('m_throttle'                , np.float32        ),
     ('m_steer'                   , np.float32        ),
     ('m_brake'                   , np.float32        ),
@@ -72,10 +115,8 @@ F1_2017_UDPPacket = np.dtype([
     ('m_sector'                  , np.float32        ),
     ('m_sector1_time'            , np.float32        ),
     ('m_sector2_time'            , np.float32        ),
-
     ('m_brakes_temp'             , np.float32, ( 4, )),
     ('m_tyres_pressure'          , np.float32, ( 4, )),
-
     ('m_team_info'               , np.float32        ),
     ('m_total_laps'              , np.float32        ),
     ('m_track_size'              , np.float32        ),
@@ -93,17 +134,13 @@ F1_2017_UDPPacket = np.dtype([
     ('m_ang_vel_x'               , np.float32        ),
     ('m_ang_vel_y'               , np.float32        ),
     ('m_ang_vel_z'               , np.float32        ),
-
     ('m_tyres_temperature'       , np.uint8,   ( 4, )),
     ('m_tyres_wear'              , np.uint8,   ( 4, )),
-
     ('m_tyre_compound'           , np.uint8          ),
     ('m_front_brake_bias'        , np.uint8          ),
     ('m_fuel_mix'                , np.uint8          ),
     ('m_currentLapInvalid'       , np.uint8          ),
-
     ('m_tyres_damage'            , np.uint8,   ( 4, )),
-
     ('m_front_left_wing_damage'  , np.uint8          ),
     ('m_front_right_wing_damage' , np.uint8          ),
     ('m_rear_wing_damage'        , np.uint8          ),
@@ -112,26 +149,20 @@ F1_2017_UDPPacket = np.dtype([
     ('m_exhaust_damage'          , np.uint8          ),
     ('m_pit_limiter_status'      , np.uint8          ),
     ('m_pit_speed_limit'         , np.uint8          ),
-
     ('m_session_time_left'       , np.float32        ),
-
     ('m_rev_lights_percent'      , np.uint8          ),
     ('m_is_spectating'           , np.uint8          ),
     ('m_spectator_car_index'     , np.uint8          ),
-
     ('m_num_cars'                , np.uint8          ),
     ('m_player_car_index'        , np.uint8          ),
     ('m_car_data'                , F1_2017_CarUDPData, (20, )),
-
     ('m_yaw'                     , np.float32        ),
     ('m_pitch'                   , np.float32        ),
     ('m_roll'                    , np.float32        ),
     ('m_x_local_velocity'        , np.float32        ),
     ('m_y_local_velocity'        , np.float32        ),
     ('m_z_local_velocity'        , np.float32        ),
-
     ('m_susp_acceleration'       , np.float32, ( 4, )),
-
     ('m_ang_acc_x'               , np.float32        ),
     ('m_ang_acc_y'               , np.float32        ),
     ('m_ang_acc_z'               , np.float32        )

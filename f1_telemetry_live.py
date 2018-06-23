@@ -5,11 +5,11 @@ import numpy as np
 
 from PyQt5 import QtCore, QtWidgets, QtNetwork, QtGui
 
-from f1_telemetry_dtype import F1_2017_UDPPacket
+from f1_telemetry_dtype import F1_2017_UDPPacket, F1_2017_Drivers, F1_2017_Teams, F1_2017_TyreCompounds
 
 app = None
 
-class CentralWidget(QtWidgets.QWidget):
+class MyCarTelemetryModel(QtCore.QAbstractTableModel):
 
     fields = [
         ('time'           , 'm_time'          , lambda x: '{:.1f}'.format(x)       , 's'   ),
@@ -28,48 +28,160 @@ class CentralWidget(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        layout = QtWidgets.QGridLayout()
-
-        self._value_labels = []
-
-        for i, (label, fieldname, formatter, unit) in enumerate(CentralWidget.fields):
-
-            key_label   = QtWidgets.QLabel(label)
-            value_label = QtWidgets.QLabel("n/a")
-            unit_label  = QtWidgets.QLabel(unit)
-
-            layout.addWidget(key_label  , i, 0)
-            layout.addWidget(value_label, i, 1)
-            layout.addWidget(unit_label , i, 2)
-
-            self._value_labels.append(value_label)
-
-        self.setLayout(layout)
+        self._values = [None for field in MyCarTelemetryModel.fields]
 
         app = QtWidgets.QApplication.instance()
-        app.telemetry.connect(self.processTelemetry)
+        app.telemetryData.connect(self.processTelemetryData)
 
-    def processTelemetry(self, telemetry):
-        for i, (label, fieldname, formatter, unit) in enumerate(CentralWidget.fields):
-            self._value_labels[i].setText(formatter(telemetry[0][fieldname]))
+    def rowCount(self, parent):
+        return len(MyCarTelemetryModel.fields)
 
+    def columnCount(self, parent):
+        return 3
+
+    def data(self, index, role):
+        row = index.row()
+        col = index.column()
+        field = MyCarTelemetryModel.fields[row]
+        if role == QtCore.Qt.DisplayRole:
+            if col == 0:
+                return field[0]
+            elif col == 1:
+                value = self._values[row]
+                if value is None:
+                    return "(not available)"
+                formatter = field[2]
+                return formatter(value)
+            elif col == 2:
+                return "[{}]".format(field[3])
+
+        return QtCore.QVariant()
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return "name"
+                elif section == 1:
+                    return "value"
+                elif section == 2:
+                    return "unit"
+        return QtCore.QVariant()
+
+    def processTelemetryData(self, telemetry):
+        for i, (label, fieldname, formatter, unit) in enumerate(MyCarTelemetryModel.fields):
+            self._values[i] = telemetry[0][fieldname]
+
+        topleft = self.createIndex(0, 1)
+        bottomright = self.createIndex(len(MyCarTelemetryModel.fields) - 1, 1)
+        self.dataChanged.emit(topleft, bottomright)
+
+
+class AllCarsTelemetryModel(QtCore.QAbstractTableModel):
+
+    fields = [
+        ('last lap time'     , 'm_lastLapTime'       , lambda x: '{:.3f}'.format(x)       , 's' ),
+        ('current lap time'  , 'm_currentLapTime'    , lambda x: '{:.3f}'.format(x)       , 's' ),
+        ('best lap time'     , 'm_bestLapTime'       , lambda x: '{:.3f}'.format(x)       , 's' ),
+        ('S1'                , 'm_sector1Time'       , lambda x: '{:.3f}'.format(x)       , 's' ),
+        ('S2'                , 'm_sector2Time'       , lambda x: '{:.3f}'.format(x)       , 's' ),
+        ('lap distance'      , 'm_lapDistance'       , lambda x: '{:.1f}'.format(x)       , 'm' ),
+        ('driver'            , 'm_driverId'          , lambda x: F1_2017_Drivers[x]       , None),
+        ('team'              , 'm_teamId'            , lambda x: F1_2017_Teams[x]         , None),
+        ('position'          , 'm_carPosition'       , lambda x: 'P{:d}'.format(x)        , None),
+        ('lap'               , 'm_currentLapNum'     , lambda x: 'L{:d}'.format(x)        , None),
+        ('tyre compound'     , 'm_tyreCompound'      , lambda x: F1_2017_TyreCompounds[x] , None),
+        ('in pits?'          , 'm_inPits'            , lambda x: '{:d}'.format(x)         , None),
+        ('sector'            , 'm_sector'            , lambda x: 'S{:d}'.format(x + 1)    , None),
+        ('lap invalid?'      , 'm_currentLapInvalid' , lambda x: '{:d}'.format(x)         , None),
+        ('penalties'         , 'm_penalties'         , lambda x: '{:d}'.format(x)         , 's' )
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._values = [[None for field in AllCarsTelemetryModel.fields] for i in range(20)]
+
+        app = QtWidgets.QApplication.instance()
+        app.telemetryData.connect(self.processTelemetryData)
+
+    def rowCount(self, parent):
+        return 20
+
+    def columnCount(self, parent):
+        return len(AllCarsTelemetryModel.fields)
+
+    def data(self, index, role):
+        row = index.row()
+        col = index.column()
+        field = AllCarsTelemetryModel.fields[col]
+        if role == QtCore.Qt.DisplayRole:
+            value = self._values[row][col]
+            if value is None:
+                return "(not available)"
+            formatter = field[2]
+            return formatter(value)
+
+        return QtCore.QVariant()
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                field = self.fields[section]
+                fieldname = field[0]
+                unit = field[3]
+                return fieldname if unit is None else "{} [{}]".format(fieldname, unit)
+                return self.fields[section][0]
+        elif orientation == QtCore.Qt.Vertical:
+            if role == QtCore.Qt.DisplayRole:
+                return "{}".format(section)
+        return QtCore.QVariant()
+
+    def processTelemetryData(self, telemetry):
+        for car in range(20):
+            for i, (label, fieldname, formatter, unit) in enumerate(AllCarsTelemetryModel.fields):
+                self._values[car][i] = telemetry[0]['m_car_data'][car][fieldname]
+
+        # Sort by car position
+        self._values.sort(key = lambda x: x[8])
+
+        topleft = self.createIndex(0, 0)
+        bottomright = self.createIndex(19, len(MyCarTelemetryModel.fields) - 1)
+        self.dataChanged.emit(topleft, bottomright)
+
+
+class CentralWidget(QtWidgets.QTabWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle('F1-2017 Telemetry')
+
+        myCarTelemetryModel = MyCarTelemetryModel() 
+        myCarTelemetryWidget = QtWidgets.QTableView()
+        myCarTelemetryWidget.setModel(myCarTelemetryModel)
+
+        allCarsTelemetryModel = AllCarsTelemetryModel() 
+        allCarsTelemetryWidget = QtWidgets.QTableView()
+        allCarsTelemetryWidget.setModel(allCarsTelemetryModel)
+
+        self.addTab(myCarTelemetryWidget, "My Car")
+        self.addTab(allCarsTelemetryWidget, "All Cars")
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('F1-2017 Telemetry')
-        widget = CentralWidget()
-        self.setCentralWidget(widget)
+
+        centralWidget = CentralWidget()
+        self.setCentralWidget(centralWidget)
 
 class Application(QtWidgets.QApplication):
 
-    telemetry = QtCore.pyqtSignal(np.ndarray)
+    telemetryData = QtCore.pyqtSignal(np.ndarray)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, port, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         udpSocket = QtNetwork.QUdpSocket()
-        udpSocket.bind(QtNetwork.QHostAddress.Any, 20777)
+        udpSocket.bind(QtNetwork.QHostAddress.Any, port)
 
         udpSocket.readyRead.connect(self.readPendingDatagrams)
 
@@ -85,10 +197,13 @@ class Application(QtWidgets.QApplication):
 
             telemetry = np.frombuffer(datagram.data(), dtype = F1_2017_UDPPacket)
 
-            self.telemetry.emit(telemetry)
+            self.telemetryData.emit(telemetry)
+
+app = None
 
 def main():
-    app = Application(sys.argv)
+    global app
+    app = Application(20777, sys.argv)
     exitcode = app.exec()
     sys.exit(exitcode)
 
