@@ -5,7 +5,7 @@
 
 import numpy as np
 
-F1_2017_Teams = {
+Teams = {
     4 : 'Mercedes',
     0 : 'Redbull',
     1 : 'Ferrari',
@@ -18,7 +18,7 @@ F1_2017_Teams = {
     5 : 'Sauber'
 }
 
-F1_2017_Drivers = {
+Drivers = {
      9 : "Lewis Hamilton",
     15 : "Valtteri Bottas",
     16 : "Daniel Ricciardo",
@@ -41,9 +41,7 @@ F1_2017_Drivers = {
     31 : "Pascal Wehrlein"
 }
 
-F1_2017_UdpPacketSize = 1289
-
-F1_2017_TyreCompounds = {
+TyreCompounds = {
     0 : "US",
     1 : "SS",
     2 : "S",
@@ -53,7 +51,9 @@ F1_2017_TyreCompounds = {
     6 : "W"
 }
 
-F1_2017_CarUDPData = np.dtype([
+UdpPacketSize = 1289
+
+CarUDPData = np.dtype([
     ('m_worldPosition'           , np.float32, ( 3, )),
     ('m_lastLapTime'             , np.float32        ),
     ('m_currentLapTime'          , np.float32        ),
@@ -72,7 +72,7 @@ F1_2017_CarUDPData = np.dtype([
     ('m_penalties'               , np.uint8          )
 ])
 
-F1_2017_UDPPacket = np.dtype([
+UDPPacket = np.dtype([
     ('m_time'                    , np.float32        ),
     ('m_lapTime'                 , np.float32        ),
     ('m_lapDistance'             , np.float32        ),
@@ -155,7 +155,7 @@ F1_2017_UDPPacket = np.dtype([
     ('m_spectator_car_index'     , np.uint8          ),
     ('m_num_cars'                , np.uint8          ),
     ('m_player_car_index'        , np.uint8          ),
-    ('m_car_data'                , F1_2017_CarUDPData, (20, )),
+    ('m_car_data'                , CarUDPData, (20, )),
     ('m_yaw'                     , np.float32        ),
     ('m_pitch'                   , np.float32        ),
     ('m_roll'                    , np.float32        ),

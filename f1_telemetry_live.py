@@ -5,7 +5,7 @@ import numpy as np
 
 from PyQt5 import QtCore, QtWidgets, QtNetwork, QtGui
 
-from f1_telemetry_dtype import F1_2017_UDPPacket, F1_2017_Drivers, F1_2017_Teams, F1_2017_TyreCompounds
+import f1_2017_defs as f1_2017
 
 app = None
 
@@ -79,18 +79,21 @@ class MyCarTelemetryModel(QtCore.QAbstractTableModel):
 
 class AllCarsTelemetryModel(QtCore.QAbstractTableModel):
 
+    def format_time(t):
+        return "n/a" if t == 0.0 else "{:.3f}".format(t)
+
     fields = [
-        ('last lap time'     , 'm_lastLapTime'       , lambda x: '{:.3f}'.format(x)       , 's' ),
-        ('current lap time'  , 'm_currentLapTime'    , lambda x: '{:.3f}'.format(x)       , 's' ),
-        ('best lap time'     , 'm_bestLapTime'       , lambda x: '{:.3f}'.format(x)       , 's' ),
-        ('S1'                , 'm_sector1Time'       , lambda x: '{:.3f}'.format(x)       , 's' ),
-        ('S2'                , 'm_sector2Time'       , lambda x: '{:.3f}'.format(x)       , 's' ),
+        ('last lap time'     , 'm_lastLapTime'       , format_time                        , 's' ),
+        ('current lap time'  , 'm_currentLapTime'    , format_time                        , 's' ),
+        ('best lap time'     , 'm_bestLapTime'       , format_time                        , 's' ),
+        ('S1'                , 'm_sector1Time'       , format_time                        , 's' ),
+        ('S2'                , 'm_sector2Time'       , format_time                        , 's' ),
         ('lap distance'      , 'm_lapDistance'       , lambda x: '{:.1f}'.format(x)       , 'm' ),
-        ('driver'            , 'm_driverId'          , lambda x: F1_2017_Drivers[x]       , None),
-        ('team'              , 'm_teamId'            , lambda x: F1_2017_Teams[x]         , None),
+        ('driver'            , 'm_driverId'          , lambda x: f1_2017.Drivers[x]       , None),
+        ('team'              , 'm_teamId'            , lambda x: f1_2017.Teams[x]         , None),
         ('position'          , 'm_carPosition'       , lambda x: 'P{:d}'.format(x)        , None),
         ('lap'               , 'm_currentLapNum'     , lambda x: 'L{:d}'.format(x)        , None),
-        ('tyre compound'     , 'm_tyreCompound'      , lambda x: F1_2017_TyreCompounds[x] , None),
+        ('tyre compound'     , 'm_tyreCompound'      , lambda x: f1_2017.TyreCompounds[x] , None),
         ('in pits?'          , 'm_inPits'            , lambda x: '{:d}'.format(x)         , None),
         ('sector'            , 'm_sector'            , lambda x: 'S{:d}'.format(x + 1)    , None),
         ('lap invalid?'      , 'm_currentLapInvalid' , lambda x: '{:d}'.format(x)         , None),
@@ -148,6 +151,26 @@ class AllCarsTelemetryModel(QtCore.QAbstractTableModel):
         bottomright = self.createIndex(19, len(MyCarTelemetryModel.fields) - 1)
         self.dataChanged.emit(topleft, bottomright)
 
+class CircuitMapScene(QtWidgets.QGraphicsScene):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._drivers = {}
+        for driver_id in f1_2017.Drivers:
+            driver_graphic = self.addEllipse(driver_id, 0.0, 40.0, 40.0)
+            self._drivers[driver_id] = driver_graphic
+
+        app = QtWidgets.QApplication.instance()
+        app.telemetryData.connect(self.processTelemetryData)
+
+    def processTelemetryData(self, telemetry):
+        cars = telemetry[0]['m_car_data']
+        for car_index in range(20):
+            car = cars[car_index]
+            driver_id = car['m_driverId']
+            driver_graphic = self._drivers[driver_id]
+            wpos = car['m_worldPosition']
+            (x, y, z) = wpos
+            driver_graphic.setRect(x, z, 40.0, 40.0)
 
 class CentralWidget(QtWidgets.QTabWidget):
     def __init__(self, *args, **kwargs):
@@ -162,8 +185,14 @@ class CentralWidget(QtWidgets.QTabWidget):
         allCarsTelemetryWidget = QtWidgets.QTableView()
         allCarsTelemetryWidget.setModel(allCarsTelemetryModel)
 
+        circuitMapScene  = CircuitMapScene()
+        circuitMapWidget = QtWidgets.QGraphicsView(circuitMapScene)
+
+        circuitMapWidget.fitInView(0.0, 0.0, 2000.0, 2000.0, QtCore.Qt.KeepAspectRatio)
+
         self.addTab(myCarTelemetryWidget, "My Car")
         self.addTab(allCarsTelemetryWidget, "All Cars")
+        self.addTab(circuitMapWidget, "Circuit Map")
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -195,7 +224,7 @@ class Application(QtWidgets.QApplication):
         while self._udpSocket.hasPendingDatagrams():
             datagram = self._udpSocket.receiveDatagram()
 
-            telemetry = np.frombuffer(datagram.data(), dtype = F1_2017_UDPPacket)
+            telemetry = np.frombuffer(datagram.data(), dtype = f1_2017.UDPPacket)
 
             self.telemetryData.emit(telemetry)
 

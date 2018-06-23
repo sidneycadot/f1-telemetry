@@ -2,7 +2,7 @@
 
 import socket
 
-from f1_telemetry_dtype import F1_2017_UdpPacketSize
+import f1_2017_defs as f1_2017
 
 filename = "recorder.dat"
 udp_port = 20777
@@ -21,13 +21,13 @@ with open(filename, "wb") as fo:
 
         while True:
             (packet, address) = sock.recvfrom(2048)
-            if len(packet) != F1_2017_UdpPacketSize:
+            if len(packet) != f1_2017.UdpPacketSize:
                 bad_packet_count += 1
             else:
                 good_packet_count += 1
                 fo.write(packet)
 
-            print("\rPackets recorded: {} ({} bad)".format(packets_received, bad_packet_count), end = '')
+            print("\rPackets recorded: {} ({} bad)".format(good_packet_count, bad_packet_count), end = '')
 
     finally:
         sock.close()

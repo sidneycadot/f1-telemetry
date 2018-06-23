@@ -5,7 +5,7 @@ import time
 import numpy as np
 import struct
 
-from f1_telemetry_dtype import F1_2017_UdpPacketSize
+import f1_2017_defs as f1_2017
 
 def broadcast_file_packets(filename, port):
 
@@ -20,10 +20,10 @@ def broadcast_file_packets(filename, port):
         t0_udp = None
         t0_wallclock = None
         packet_index = 0
-        realtime_factor = 1.0
+        realtime_factor = 10.0
         while True:
-            packet = fi.read(F1_2017_UdpPacketSize)
-            if len(packet) != F1_2017_UdpPacketSize:
+            packet = fi.read(f1_2017.UdpPacketSize)
+            if len(packet) != f1_2017.UdpPacketSize:
                 break
             t_udp = struct.unpack('<f', packet[0:4])[0]
             t_wallclock = time.time()
