@@ -2,9 +2,10 @@
 
 import socket
 
+from f1_telemetry_dtype import F1_2017_UdpPacketSize
+
 filename = "recorder.dat"
 udp_port = 20777
-udp_packet_size_expected = 1289
 
 with open(filename, "wb") as fo:
 
@@ -15,16 +16,18 @@ with open(filename, "wb") as fo:
         address = ('', udp_port)
         sock.bind(address)
 
-        packets_received = 0
+        good_packet_count = 0
+        bad_packet_count = 0
+
         while True:
             (packet, address) = sock.recvfrom(2048)
-            packets_received += 1
-            if packets_received % 100 == 0:
-                print("Packets received: {}".format(packets_received))
-            if len(packet) != udp_packet_size_expected:
-                print("Bad UDP packet (length: {} bytes)".format(len(packet)))
-                continue
-            fo.write(packet)
+            if len(packet) != F1_2017_UdpPacketSize:
+                bad_packet_count += 1
+            else:
+                good_packet_count += 1
+                fo.write(packet)
+
+            print("\rPackets recorded: {} ({} bad)".format(packets_received, bad_packet_count), end = '')
 
     finally:
         sock.close()
