@@ -154,15 +154,21 @@ class AllCarsTelemetryModel(QtCore.QAbstractTableModel):
 class CircuitMapScene(QtWidgets.QGraphicsScene):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._pixmap = QtGui.QPixmap(2400, 2400)
+        self._pixmap.fill(QtCore.Qt.white)
+        self._background = self.addPixmap(self._pixmap)
+        self._background.setOffset(-1200.0, -1200.0)
         self._drivers = {}
         for driver_id in f1_2017.Drivers:
-            driver_graphic = self.addEllipse(driver_id, 0.0, 40.0, 40.0)
+            driver_graphic = self.addEllipse(-20.0, -20.0, 40.0, 40.0)
             self._drivers[driver_id] = driver_graphic
 
         app = QtWidgets.QApplication.instance()
         app.telemetryData.connect(self.processTelemetryData)
 
     def processTelemetryData(self, telemetry):
+        painter = QtGui.QPainter(self._pixmap)
+        painter.setPen(QtGui.QColor("#ffcccc"))
         cars = telemetry[0]['m_car_data']
         for car_index in range(20):
             car = cars[car_index]
@@ -170,7 +176,10 @@ class CircuitMapScene(QtWidgets.QGraphicsScene):
             driver_graphic = self._drivers[driver_id]
             wpos = car['m_worldPosition']
             (x, y, z) = wpos
-            driver_graphic.setRect(x, z, 40.0, 40.0)
+            driver_graphic.setRect(x - 20.0, z - 20.0, 40.0, 40.0)
+            painter.drawEllipse(x + 1200.0, z + 1200.0, 5.0, 5.0)
+        painter.end()
+        self._background.setPixmap(self._pixmap)
 
 class CentralWidget(QtWidgets.QTabWidget):
     def __init__(self, *args, **kwargs):
