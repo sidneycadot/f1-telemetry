@@ -20,7 +20,7 @@ def broadcast_file_packets(filename, port):
         t0_udp = None
         t0_wallclock = None
         packet_index = 0
-        realtime_factor = 5.0
+        realtime_factor = 1.0
         while True:
             packet = fi.read(f1_2017.UdpPacketSize)
             if len(packet) != f1_2017.UdpPacketSize:

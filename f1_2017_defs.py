@@ -5,52 +5,66 @@
 
 import numpy as np
 
+class Team:
+    def __init__(self, name, color):
+        self.name  = name
+        self.color = color
+
+# See: https://www.reddit.com/r/formula1/comments/609hcd/f1_2017_team_color_hex_codes/
+
 Teams = {
-    4 : 'Mercedes',
-    0 : 'Redbull',
-    1 : 'Ferrari',
-    6 : 'Force India',
-    7 : 'Williams',
-    2 : 'McLaren',
-    8 : 'Toro Rosso',
-   11 : 'Haas',
-    3 : 'Renault',
-    5 : 'Sauber'
+    4 : Team('Mercedes'    , '#00cfba'),
+    0 : Team('Redbull'     , '#00007d'),
+    1 : Team('Ferrari'     , '#c30000'),
+    6 : Team('Force India' , '#ff80c7'),
+    7 : Team('Williams'    , '#ffffff'),
+    2 : Team('McLaren'     , '#ff7b08'),
+    8 : Team('Toro Rosso'  , '#0000ff'),
+   11 : Team('Haas'        , '#6c0000'),
+    3 : Team('Renault'     , '#ffd800'),
+    5 : Team('Sauber'      , '#006eff')
 }
 
+class Driver:
+    def __init__(self, name, shortname, color):
+        self.name      = name
+        self.shortname = shortname
+        self.color     = color
+
 Drivers = {
-     9 : "Lewis Hamilton",
-    15 : "Valtteri Bottas",
-    16 : "Daniel Ricciardo",
-    22 : "Max Verstappen",
-     0 : "Sebastian Vettel",
-     6 : "Kimi Räikkönen",
-     5 : "Sergio Perez",
-    33 : "Esteban Ocon",
-     3 : "Felipe Massa",
-    35 : "Lance Stroll",
-     2 : "Fernando Alonso",
-    34 : "Stoffel Vandoorne",
-    23 : "Carlos Sainz Jr.",
-     1 : "Daniil Kvyat",
-     7 : "Romain Grosjean",
-    14 : "Kevin Magnussen",
-    10 : "Nico Hulkenberg",
-    20 : "Jolyon Palmer",
-    18 : "Marcus Ericsson",
-    31 : "Pascal Wehrlein"
+     9 : Driver('Lewis Hamilton'    , 'HAM' , '#000000'),
+    15 : Driver('Valtteri Bottas'   , 'BOT' , '#ffff00'),
+    16 : Driver('Daniel Ricciardo'  , 'RIC' , '#000000'),
+    22 : Driver('Max Verstappen'    , 'VER' , '#ffff00'),
+     0 : Driver('Sebastian Vettel'  , 'VET' , '#000000'),
+     6 : Driver('Kimi Räikkönen'    , 'RAI' , '#ffff00'),
+     5 : Driver('Sergio Perez'      , 'PER' , '#000000'),
+    33 : Driver('Esteban Ocon'      , 'OCO' , '#ffff00'),
+     3 : Driver('Felipe Massa'      , 'MAS' , '#000000'),
+    35 : Driver('Lance Stroll'      , 'STR' , '#ffff00'),
+     2 : Driver('Fernando Alonso'   , 'ALO' , '#000000'),
+    34 : Driver('Stoffel Vandoorne' , 'VAN' , '#ffff00'),
+    23 : Driver('Carlos Sainz Jr.'  , 'SAI' , '#000000'),
+     1 : Driver('Daniil Kvyat'      , 'KYV' , '#ffff00'),
+     7 : Driver('Romain Grosjean'   , 'GRO' , '#000000'),
+    14 : Driver('Kevin Magnussen'   , 'MAG' , '#ffff00'),
+    10 : Driver('Nico Hulkenberg'   , 'HUL' , '#000000'),
+    20 : Driver('Jolyon Palmer'     , 'PAL' , '#ffff00'),
+    18 : Driver('Marcus Ericsson'   , 'ERI' , '#000000'),
+    31 : Driver('Pascal Wehrlein'   , 'WEH' , '#ffff00')
 }
 
 TyreCompounds = {
-    0 : "US",
-    1 : "SS",
-    2 : "S",
-    3 : "M",
-    4 : "H",
-    5 : "I",
-    6 : "W"
+    0 : 'US',
+    1 : 'SS',
+    2 : 'S',
+    3 : 'M',
+    4 : 'H',
+    5 : 'I',
+    6 : 'W'
 }
 
+NumberOfCars  = 20
 UdpPacketSize = 1289
 
 CarUDPData = np.dtype([
